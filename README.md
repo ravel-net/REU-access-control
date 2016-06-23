@@ -23,26 +23,27 @@ Now, connect directly to the database (i.e. the Ravel controller):
 To see what user you are connected to the database as, type  
 `# select current_user;`
 
-You should be connected as ravel. Because ravel is a superuser in the database, you should have access to all of Ravel's base tables. Type:
+You should be connected as ravel. Because ravel is a superuser in the database, you should have access to all of Ravel's base tables. Type:  
 `# select * from tp;`  
-This is the custom network topology for this demo (preloaded from `~/ravel/topo/sla_topo.py`).  
-Now type:
-`# select * from rm;`
-This is the reachability matrix of the network. We will focus on three columns: the unique flow ID (fid), source (src), and destination (dst). The rm table only shows the beginning and end of each flow; the specific route is stored in the cf (configuration) table, but for now we will only focus on the tp and rm tables.
+This is the custom network topology for this demo (preloaded from `~/ravel/topo/sla_topo.py`).
 
-Now, suppose we allow users to "rent" portions of the network. These users are called tenants, and the nodes they "rent" are recorded in a service-level agreement, represented by the `sla` table. Type:
-`# select * from sla;`
-Currently, the `sla` table consists of the 10 rows:
-` name  | nodeid 
+Now type:  
+`# select * from rm;`  
+This is the reachability matrix of the network. We will focus on three columns: the unique flow ID (`fid`), source (`src`), and destination (`dst`). The rm table only shows the beginning and end of each flow; the specific route is stored in the `cf` (configuration) table, but for now we will only focus on the `tp` and `rm` tables.
+
+Now, suppose we allow users to "rent" portions of the network. These users are called tenants, and the nodes they "rent" are recorded in a service-level agreement, represented by the `sla` table. Type:  
+`# select * from sla;`  
+Currently, the `sla` table consists of the 10 rows:  
+` name  | nodeid   
 -------+--------
- alice |      1
- alice |      2
- alice |      3
- alice |     11
- alice |     12
- alice |     13
- bob   |      4
- bob   |      5
- bob   |     14
+ alice |      1  
+ alice |      2  
+ alice |      3   
+ alice |     11  
+ alice |     12  
+ alice |     13   
+ bob   |      4   
+ bob   |      5  
+ bob   |     14  
  bob   |     15`
 
