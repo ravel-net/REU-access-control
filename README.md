@@ -32,6 +32,7 @@ This is the custom network topology for this demo (preloaded from `~/ravel/topo/
 Now, suppose we allow users to "rent" portions of the network. These users are called tenants, and the nodes they "rent" are recorded in a service-level agreement, represented by the `sla` table. Type:  
 `# select * from sla;`  
 Currently, the `sla` table consists of the 10 rows:  
+
 | name  | nodeid |
 | ------ | -------: | 
 | alice | 1 |
