@@ -32,18 +32,18 @@ This is the custom network topology for this demo (preloaded from `~/ravel/topo/
 Now, suppose we allow users to "rent" portions of the network. These users are called tenants, and the nodes they "rent" are recorded in a service-level agreement, represented by the `sla` table. Type:  
 `# select * from sla;`  
 Currently, the `sla` table consists of the 10 rows:  
-name  | nodeid  
-------|-------:  
-alice |      1
-alice |      2
-alice |      3
-alice |     11
-alice |     12
-alice |     13
-bob   |      4
-bob   |      5
-bob   |     14
-bob   |     15
+| name  | nodeid |
+| ------ | -------: | 
+| alice | 1 |
+| alice |      2 |
+| alice |      3 |
+| alice |     11 |
+| alice |     12 |
+| alice |     13 |
+| bob   |      4 | 
+| bob   |      5 |
+| bob   |     14 |
+| bob   |     15 |
 
 Tenants should only be able to view the topology of their part of the network. This is implemented using an access control list (ACL), a view which was created for us in the SQL file we ran at the beginning of this demo. The view has three columns: one for the principal, i.e. the user from whose perspective we wish to view the topology, and the `sid` and `nid` columns from the `tp` table that are within the user's share of the network. The user admin is permitted to see the entire network, while alice only sees her own four links and bob his three links:  
 `# select * from topology_acl;`  
@@ -94,7 +94,7 @@ This is the reachability matrix of the network. We will focus on three columns: 
 Suppose alice is running a server and provides content to bob and charlie. Alice can communicate with bob and charlie, and they with her, but bob and charlie cannot talk to each other. This is reflected in the `config_sla` table:  
 `# select * from config_sla;`
    p1    |   p2    
----------|---------
+--------- | ---------
  alice   | bob
  alice   | charlie
  bob     | alice
