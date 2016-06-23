@@ -10,6 +10,7 @@
 ALTER TABLE hosts DROP COLUMN IF EXISTS tenant;
 ALTER TABLE switches DROP COLUMN IF EXISTS tenant;
 DROP TABLE IF EXISTS sla CASCADE;
+TRUNCATE TABLE rm;
 
 ALTER TABLE hosts ADD COLUMN tenant varchar;
 ALTER TABLE switches ADD COLUMN tenant varchar;
@@ -39,11 +40,11 @@ CREATE OR REPLACE VIEW topology_acl AS (
 );
 
 /* current user's visible nodes (topo) */
-CREATE OR REPLACE VIEW topology_public AS (
+CREATE OR REPLACE VIEW topology_tenant AS (
     SELECT sid, nid FROM topology_acl
     WHERE principal = current_user);
 
-GRANT SELECT ON topology_public TO PUBLIC;
+GRANT SELECT ON topology_tenant TO PUBLIC;
 
 DROP TABLE IF EXISTS config_sla CASCADE;
 
@@ -51,8 +52,11 @@ DROP TABLE IF EXISTS config_sla CASCADE;
 CREATE TABLE config_sla (p1 varchar, p2 varchar);
 INSERT INTO config_sla (p1, p2) VALUES ('alice', 'bob'), ('alice', 'charlie'), ('bob', 'alice'), ('charlie', 'alice');
 
+/* add some flows to the network */
+INSERT INTO rm (fid, src, dst) VALUES (1, 1, 5), (2, 4, 12), (3, 2, 17), (4, 7, 3), (5, 1, 13);
+
 /* current user's visible network traffic */
-CREATE VIEW rm_public AS (
+CREATE VIEW rm_tenant AS (
     SELECT fid, src, dst FROM rm
     WHERE
     rm.src IN (
@@ -72,7 +76,7 @@ CREATE VIEW rm_public AS (
     )
 );
 
-GRANT SELECT, INSERT, DELETE ON rm_public TO PUBLIC;
+GRANT SELECT, INSERT, DELETE ON rm_tenant TO PUBLIC;
 /* QUESTION: how does one restrict what public can insert? */
 /* TODO: restrict what current_user can insert to only flows that comply with conditions of view */
 /* TODO: make fid's automatically assigned, so that user gains as little info as possible about
