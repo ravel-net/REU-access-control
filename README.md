@@ -94,6 +94,7 @@ This is the reachability matrix of the network. We will focus on three columns: 
 
 Suppose alice is running a server and provides content to bob and charlie. Alice can communicate with bob and charlie, and they with her, but bob and charlie cannot talk to each other. This is reflected in the `config_sla` table:  
 `# select * from config_sla;`
+
    p1    |   p2    
 --------- | ---------
  alice   | bob
