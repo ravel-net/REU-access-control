@@ -77,6 +77,42 @@ CREATE VIEW rm_tenant AS (
 );
 
 GRANT SELECT, INSERT, DELETE ON rm_tenant TO PUBLIC;
+
+/* veiws created because triggers do not support subqueries */
+CREATE VIEW rm_trigger_src AS (
+    SELECT nodeid FROM sla WHERE name IN (
+        SELECT p1 FROM config_sla WHERE p2=current_user )
+    UNION
+    SELECT nodeid FROM sla WHERE name = current_user );
+
+CREATE VIEW rm_trigger_dst AS (
+    SELECT nodeid FROM sla WHERE name IN (
+        SELECT p2 FROM config_sla WHERE p1=current_user )
+    UNION
+    SELECT nodeid FROM sla WHERE name = current_user );
+
+DROP TABLE IF EXISTS rm_exceptions;
+CREATE TABLE rm_exceptions ( name varchar );
+INSERT INTO rm_exceptions (name) VALUES ('ravel');
+
+/* trigger uses AFTER INSERT because WHEN is not supported for INSTEAD OF triggers */
+/* use before trigger (be more general for complicated cases/views that aren't updatabale,
+performance is better to avoid unnecessary actions 
+modify/override postgres modification commands */
+CREATE TRIGGER rm_modifications_trigger
+    INSTEAD OF INSERT ON rm_tenant
+    FOR EACH ROW
+    EXECUTE PROCEDURE check_rm_table( SELECT CAST ( NEW.fid AS text ), CAST(NEW.src AS text), CAST(NEW.dst AS text));
+
+/* write in plpy */
+CREATE OR REPLACE FUNCTION check_rm_table()
+RETURNS TRIGGER
+AS $rm_modifications_trigger$
+if plpy.execute("SELECT EXISTS( SELECT 1 FROM rm_trigger_src WHERE nodeid = " + TD['args'][1] + " ) AND (SELECT EXISTS( SELECT 1 FROM rm_trigger_dst WHERE nodeid = " + TD['args'][2] + " )) AND ( SELECT EXISTS(SELECT 1 FROM sla WHERE nodeid = " + TD['args'][1] + " AND name = current_user) OR (SELECT EXISTS(SELECT 1 FROM sla WHERE nodeid = " + TD['args'][2] + " AND name = current_user) ));"):
+    plpy.execute("INSERT INTO rm (fid, src, dst) VALUES (" + TD['args'][0] + ", " + TD['args'][1] + ", " + TD['args'][2] + ");")
+return None;
+$rm_modifications_trigger$ LANGUAGE 'plpythonu' VOLATILE SECURITY DEFINER;
+
 /* QUESTION: how does one restrict what public can insert? */
 /* TODO: restrict what current_user can insert to only flows that comply with conditions of view */
 /* TODO: make fid's automatically assigned, so that user gains as little info as possible about
