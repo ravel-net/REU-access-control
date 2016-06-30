@@ -9,7 +9,7 @@ To learn more, follow the demo below. You can go through the steps on your own m
 # Notes
 
 The demo uses the following prompt syntax:  
-* `$` for Linux commands in the shell prompt
+* `$` for Linux commands in the shell prompt (run from the home directory, `~`)
 * `>` for Ravel commands typed into the Ravel CLI
 
 # Demo
@@ -25,7 +25,7 @@ Now that we you connected to the controller, you can interact with the network t
 For instance, you can issue the SQL command to see what user we are connected to the database as:   
 `> p select current_user;`
 
-You should be connected as ravel. Because ravel is a superuser in the database, you should have access to all of Ravel's base tables. Type:  
+Since we didn't specify a user when connecting to the controller in the previous step, you should be connected as the user ravel per default. Because ravel is a superuser in the database, you should have access to all of Ravel's (the controller's) base tables. Type:  
 `> p select * from tp;`  
 As mentioned above, this is the custom network topology for this demo, preloaded from `~/ravel/topo/sla_topo.py`. For now, we need only concern ourselves with the `sid` and `nid` attributes, which, respectively, represent the unique switch ID of a component of the network and the ID of the next switch it connects to.
 
@@ -57,7 +57,10 @@ The `sla_start.sql` file next defines a view called `topology_tenant` that consi
 This yields a view with no entries, because there is no entry in the `topology_acl` table where `principal = ravel`. 
 
 Let's change users:  
-`> p \c ravel alice`  
+```
+> exit
+$ ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb --reconnect --user=alice
+```
 You should now be connected to the database `ravel` as the user alice. Note that alice does not have access to any of base tables anymore:  
 ```
 > p select * from tp;  
@@ -70,7 +73,8 @@ Note that only the `sid` and `nid` attributes are visible, and that these only i
 
 Let's check to make sure that this works for the user bob as well.  
 ```
-> p \c ravel bob
+> exit
+$ ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb --reconnect --user=bob
 > p select * from tp;
 > p select * from sla;
 > p select * from topology_acl;
@@ -80,7 +84,8 @@ Once again, bob does not have access to the `tp`, `sla`, and `topology_acl` tabl
 
 The key advantage to using a database as the central controller in an SDN is that these views are dynamic. Let's add another tenant, charlie:  
 ```
-> p \c ravel ravel  
+> exit
+$ ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb --reconnect
 > p insert into sla (name, nodeid) values ('charlie', 7), ('charlie', 8), ('charlie', 17), ('charlie', 18);
 ```  
 Charlie has now rented four nodes on the network. See that the `topology_acl` view has been updated accordingly:   
@@ -106,12 +111,14 @@ Suppose alice is running a server and provides content to bob and charlie. Alice
 
 In the `sla_start.sql` file, we defined a view `rm_tenant` that only contains the entries from the `rm` table where `src` or `dst` are allowed for `current_user` (as specified in the `config_sla` table) and at least one of the `src` and `dst` nodes belong to `current_user`. Type:  
 ```
-> p \c ravel alice;
+> exit
+$ ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb --reconnect --user=alice
 > p select * from rm_tenant;
 ```
 Alice can see all five flows from the `rm` table, because they all have her as at least one endpoint, and the other endpoint is a user she has been whitelisted to talk to (or, in the case of flow 5, one of her own nodes). Similarly,  
 ```
-> p \c ravel bob;
+> exit
+$ ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb --reconnect --user=bob
 > p select * from rm_tenant;
 ```  
 shows the two flows that concern bob, and only those two flows. Bob cannot see any of the traffic within alice's part of the network, nor the communications between alice and charlie. The same thing holds for charlie.
