@@ -127,9 +127,9 @@ shows the two flows that concern bob, and only those two flows. Bob cannot see a
 
 #### Modifying Network Traffic
 
-We also want to make sure users are only permitted to insert permitted flows into the network. This is achieved by creating what is called a trigger on the `rm_tenant` view. Every time an entry is inserted into the view, the trigger is fired (before the entry is inserted): if the new flow is not permitted, a function blocks the new insertion and the `rm` table and `rm_tenant` view remain unchanged (and thus, the network itself as well). Nothing happens, on the other hand, if the new flow is permitted, and so the `rm` table and `rm_tenant` views are updated accordingly, along with the network itself.  
+We also want to make sure users are only permitted to insert permitted flows into the network. This is achieved by creating what is called a trigger on the `rm_tenant` view. Every time an entry is inserted into the view, the trigger is fired (before the entry is inserted): if the new flow is not permitted, a function blocks the new insertion and the `rm` table and `rm_tenant` view remain unchanged (and thus, the network itself as well). If, on the other hand, the new flow is permitted, no preventative action is taken, so the `rm` table and `rm_tenant` views are updated accordingly, along with the network itself.  
 
-What follows is an example of this behavior.
+This behavior is demonstrated in the following example.
 
 Connect to the Ravel controller as the user ravel and remind yourself of the flows currently active in the network:
 ```
@@ -168,6 +168,10 @@ This change is also adopted in the `rm` base table:
 $ ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb --reconnect
 > p select * from rm;
 ```
+Note that bob can only insert flows that initiate in his part of the network. For instance, even though bob is allowed to communicate with alice and see flows between his nodes and some of alice's (both in the direction bob to alice and alice to bob), he cannot insert a flow from alice to bob; if he issues the command
+`> p insert into rm_tenant (fid, src, dst) values (7, 12, 14)`  
+the change is not adopted by the network. (Note that to issue the above command you will need to exit the Ravel CLI and reconnect to the controller as bob.)
+
 
 Bob can delete flows from his `rm_tenant` view, that is, flows in the network that are visible to him. For instance:  
 ```

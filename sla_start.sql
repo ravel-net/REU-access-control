@@ -60,9 +60,6 @@ INSERT INTO config_sla (p1, p2) VALUES ('alice', 'bob'), ('alice', 'charlie'), (
 
 /* veiws created because triggers do not support subqueries */
 CREATE VIEW rm_trigger_src AS (
-    SELECT nodeid FROM sla WHERE name IN (
-        SELECT p1 FROM config_sla WHERE p2=current_user )
-    UNION
     SELECT nodeid FROM sla WHERE name = current_user );
 /*this grant is fine because it only shows info the current user knows anyway */
 GRANT SELECT ON rm_trigger_src TO PUBLIC;
@@ -79,18 +76,11 @@ DROP TABLE IF EXISTS rm_exceptions;
 CREATE TABLE rm_exceptions ( name varchar );
 INSERT INTO rm_exceptions (name) VALUES ('ravel');
 
-/* trigger uses AFTER INSERT because WHEN is not supported for INSTEAD OF triggers */
-/* use before trigger (be more general for complicated cases/views that aren't updatabale,
-performance is better to avoid unnecessary actions 
-modify/override postgres modification commands */
+/* trigger for modifications on rm */
 DROP TRIGGER IF EXISTS rm_modifications_trigger ON rm;
 CREATE TRIGGER rm_modifications_trigger
     BEFORE INSERT ON rm
     FOR EACH ROW
-/*    DECLARE 
-        newfid = NEW.fid;
-        newsrc = NEW.src;
-        newdst = NEW.dst; */
     EXECUTE PROCEDURE check_rm_table();
 
 /* returns true if the insertion is allowed */
