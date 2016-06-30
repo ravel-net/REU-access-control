@@ -138,7 +138,7 @@ CREATE VIEW rm_tenant AS (
 GRANT SELECT, INSERT, DELETE ON rm_tenant TO PUBLIC;
 
 /* QUESTION: how does one restrict what public can insert? */
-/* TODO: restrict what current_user can insert to only flows that comply with conditions of view */
+/* TODO: restrict insertions into rm_tenant to only flows where the source is in the current_user's area of the network? */
 /* TODO: make fid's automatically assigned, so that user gains as little info as possible about
         what/how many other flows there are */
 

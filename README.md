@@ -93,7 +93,9 @@ Charlie has now rented four nodes on the network. See that the `topology_acl` vi
 and that if we log in as charlie, only see the nodes charlie owns are visible in `topology_tenant`:  
 `> p select * from topology_tenant;`  
 
-### Part 2: Viewing Network Traffic
+### Part 2: Network Traffic Access Control
+
+#### Viewing Network Traffic
 
 Now type:  
 `> p select * from rm;`  
@@ -122,3 +124,67 @@ $ ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb --re
 > p select * from rm_tenant;
 ```  
 shows the two flows that concern bob, and only those two flows. Bob cannot see any of the traffic within alice's part of the network, nor the communications between alice and charlie. The same thing holds for charlie.
+
+#### Modifying Network Traffic
+
+We also want to make sure users are only permitted to insert permitted flows into the network. This is achieved by creating what is called a trigger on the `rm_tenant` view. Every time an entry is inserted into the view, the trigger is fired (before the entry is inserted): if the new flow is not permitted, a function blocks the new insertion and the `rm` table and `rm_tenant` view remain unchanged (and thus, the network itself as well). Nothing happens, on the other hand, if the new flow is permitted, and so the `rm` table and `rm_tenant` views are updated accordingly, along with the network itself.  
+
+What follows is an example of this behavior.
+
+Connect to the Ravel controller as the user ravel and remind yourself of the flows currently active in the network:
+```
+> exit
+$ ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb --reconnect
+> p select * from rm;
+```
+Now, switch to the user bob:
+```
+> exit
+$ ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb --reconnect --user=bob
+```
+Recall that bob only has two visible flows in `rm_tenant`:  
+`> p select * from rm_tenant;`  
+
+Let's try inserting a disallowed flow into the `rm_tenant` view and see whether the changes are adopted:  
+```
+> p insert into rm_tenant (fid, src, dst) values (6, 5, 8);
+> p select * from rm_tenant;
+> exit
+$ ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb --reconnect
+> select * from rm;
+```
+Both the `rm_tenant` view and the `rm` table should be unchanged, only containing the same flows as before the insertion.
+
+Now let's insert an allowed flow:  
+```
+> exit
+$ ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb --reconnect --user=bob
+> p insert into rm_tenant (fid, src, dst) values (6, 14, 12);
+> select * from rm_tenant;
+```
+This change is also adopted in the `rm` base table:
+```
+> exit
+$ ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb --reconnect
+> p select * from rm;
+```
+
+Bob can delete flows from his `rm_tenant` view, that is, flows in the network that are visible to him. For instance:  
+```
+> exit
+$ ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb --reconnect --user=bob
+> p delete from rm_tenant where fid=1;
+```
+Deleting a different flow in the network, one outside bob's vision, is impossible for bob because he does not have delete permission on the `rm` table, and these flows are not reflected in the `rm_tenant` view:
+```
+> p delete from rm_tenant where fid=3;
+> p delete from rm where fid=3;
+```
+Neither of these commands has an effect on the flows in the network:  
+```
+> exit
+$ ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb --reconnect
+> p select * from rm;
+```
+
+To assure yourself of the flexibility of this access control policy, you can attempt similar deletions and insertions as any of the other users on the controller.
