@@ -21,9 +21,6 @@ CREATE TABLE sla (name varchar, nodeid integer);
 INSERT INTO sla (name, nodeid) VALUES ('alice', 1), ('alice', 2), ('alice', 3), ('alice', 11), ('alice', 12), ('alice', 13);
 INSERT INTO sla (name, nodeid) VALUES ('bob', 4), ('bob', 5), ('bob', 14), ('bob', 15);
 
-GRANT SELECT ON sla TO PUBLIC;
-/* TODO: fix this security breach */
-
 /* add a column to track who 'owns' each host to the hosts table */
 UPDATE hosts SET tenant = sla.name FROM sla
      WHERE hosts.hid = sla.nodeid;
@@ -99,7 +96,7 @@ CREATE TRIGGER rm_modifications_trigger
 /* returns true if the insertion is allowed */
 CREATE OR REPLACE FUNCTION rm_boolean(newsrc varchar, newdst varchar)
 RETURNS BOOLEAN AS $rm_boolean$
-    SELECT (SELECT EXISTS( SELECT 1 FROM rm_trigger_src WHERE nodeid = CAST($1 AS integer) ) AND (SELECT EXISTS( SELECT 1 FROM rm_trigger_dst WHERE nodeid = CAST($2 AS integer) )) AND ( SELECT EXISTS(SELECT 1 FROM sla WHERE nodeid =  CAST($1 AS integer) AND name = current_user) OR (SELECT EXISTS(SELECT 1 FROM sla WHERE nodeid =  CAST($2 AS integer) AND name = current_user) )) OR (current_user = 'ravel') );
+    SELECT (SELECT EXISTS( SELECT 1 FROM rm_trigger_src WHERE nodeid = CAST($1 AS integer) ) AND (SELECT EXISTS( SELECT 1 FROM rm_trigger_dst WHERE nodeid = CAST($2 AS integer) )) AND ( SELECT EXISTS(SELECT 1 FROM sla_tenant WHERE nodeid =  CAST($1 AS integer) ) OR (SELECT EXISTS(SELECT 1 FROM sla_tenant WHERE nodeid =  CAST($2 AS integer) ) )) OR (current_user = 'ravel') );
 $rm_boolean$ LANGUAGE SQL;
 
 /* trigger function */
