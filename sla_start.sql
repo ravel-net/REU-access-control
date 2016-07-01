@@ -99,7 +99,7 @@ CREATE VIEW rm_tenant AS (
 GRANT SELECT, INSERT, DELETE ON rm_tenant TO PUBLIC;
 
 /* trigger for modifications on rm */
-DROP TRIGGER IF EXISTS rm_modifications_trigger ON rm_tenant;
+DROP TRIGGER IF EXISTS rm_modifications_trigger ON rm;
 CREATE TRIGGER rm_modifications_trigger
     BEFORE INSERT ON rm
     FOR EACH ROW
