@@ -18,6 +18,8 @@ Follow [these steps](http://ravel-net.org) to install Ravel on your machine. Nex
 
 # Demo
 
+![alt text](https://github.com/ravel-net/REU-access-control/blob/master/demo-topo.png "Demo topology")
+
 Log into or SSH into the Ravel VM. Next, connect directly to the Ravel controller:  
 `$ sudo python ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb`  
 The above command connects to the controller using a custom, predefined network topology (written for this demo and placed with all the other topologies in the ~/ravel/topo folder in the setup in the previous section). For this demo, we use the `--onlydb` flag, which only starts the `ravel` database (i.e. the Ravel controller) without the Mininet network simulation (for more information, see [Part 1 of the Ravel Walkthrough](http://ravel-net.org/walkthrough#part-1-startup-options)).
