@@ -19,7 +19,7 @@ Follow [these steps](http://ravel-net.org) to install Ravel on your machine. Nex
 # Demo
 
 Log into or SSH into the Ravel VM. Next, connect directly to the Ravel controller:  
-`$ sudo python ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb --reconnect`  
+`$ sudo python ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb`  
 The above command connects to the controller using a custom, predefined network topology (written for this demo and placed with all the other topologies in the ~/ravel/topo folder in the setup in the previous section). For this demo, we use the `--onlydb` flag, which only starts the `ravel` database (i.e. the Ravel controller) without the Mininet network simulation (for more information, see [Part 1 of the Ravel Walkthrough](http://ravel-net.org/walkthrough#part-1-startup-options)).
 
 Now that you are connected to the controller, you can interact with the network through the Ravel CLI. The CLI has a built-in PostgreSQL interface, allowing the user to issue PostgreSQL commands with the prefix `p`.  
@@ -187,7 +187,7 @@ Deleting a different flow in the network, one outside bob's vision, is impossibl
 Neither of these commands has an effect on the flows in the network:  
 ```
 > exit
-$ sudo python ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb --reconnect
+$ sudo python ./ravel/ravel.py --custom=./ravel/topo/sla_topo.py --topo=mytopo --onlydb
 > p select * from rm;
 ```-->
 
