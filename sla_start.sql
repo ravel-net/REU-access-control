@@ -7,27 +7,14 @@
  * 21 Jun 2016
  */
 
-ALTER TABLE hosts DROP COLUMN IF EXISTS tenant;
-ALTER TABLE switches DROP COLUMN IF EXISTS tenant;
 DROP TABLE IF EXISTS sla CASCADE;
 TRUNCATE TABLE rm;
-
-ALTER TABLE hosts ADD COLUMN tenant varchar;
-ALTER TABLE switches ADD COLUMN tenant varchar;
 
 /* keep a list of tenants */
 CREATE TABLE sla (name varchar, nodeid integer);
 /* INSERT INTO tenants (name, nodeid) VALUES (NEW.name, NEW.nodeid); */
 INSERT INTO sla (name, nodeid) VALUES ('alice', 1), ('alice', 2), ('alice', 3), ('alice', 11), ('alice', 12), ('alice', 13);
 INSERT INTO sla (name, nodeid) VALUES ('bob', 4), ('bob', 5), ('bob', 14), ('bob', 15);
-
-/* add a column to track who 'owns' each host to the hosts table */
-UPDATE hosts SET tenant = sla.name FROM sla
-     WHERE hosts.hid = sla.nodeid;
-
-/* ...and to the switch table */
-UPDATE switches SET tenant = sla.name FROM sla
-     WHERE switches.sid = sla.nodeid;
 
 /* each user's visible nodes */
 CREATE OR REPLACE VIEW topology_acl AS ( 
@@ -124,11 +111,6 @@ END IF;
 RETURN NEW;
 END
 $rm_modifications_trigger$ LANGUAGE 'plpgsql';
-
-/* QUESTION: how does one restrict what public can insert? */
-/* TODO: restrict insertions into rm_tenant to only flows where the source is in the current_user's area of the network? */
-/* TODO: make fid's automatically assigned, so that user gains as little info as possible about
-        what/how many other flows there are */
 
 /* add some flows to the network */
 /* trigger is called on this insertion as well! */
