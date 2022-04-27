@@ -1,3 +1,5 @@
+This work was conducted as part of an [NSF Research Experience for Undergraduates (REU) at Temple University](http://cis-linux1.temple.edu/~avinash/TUREU/index.html). 
+
 # REU-access-control
 
 A critical but less-visited aspect of SDN today is network security. Most SDN controllers still do not implement security, and as of yet, there is not even any consensus on what the ideal security requirements are. Several approaches have been suggested in the literature, including access control lists (ACLs) and restricting the direction of information flow, but none have been implemented.
